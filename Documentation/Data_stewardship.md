@@ -1,0 +1,6 @@
+- onderscheid tussen raw data, processed data en resultaten
+- waarom FASTQ-, BAM- en referencebestanden niet op GitHub staan
+- hoe metadata is opgeslagen
+- hoe je bestandsnamen hebt gekozen
+- hoe je reproduceerbaarheid bewaakt met scripts en package-versies
+- hoe .gitignore gebruikt is

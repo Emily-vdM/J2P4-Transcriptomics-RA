@@ -1,0 +1,6 @@
+- repository aangemaakt en gekoppeld met GitHub Desktop
+- mappenstructuur opgezet
+- bestanden toegevoegd via commits
+- push naar online GitHub
+- commit messages gebruikt om wijzigingen bij te houden
+- README-bestanden gebruikt om mappen te documenteren
