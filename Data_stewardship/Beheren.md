@@ -14,7 +14,7 @@ Voor dit project is een vaste mappenstructuur gebruikt:
 Data/
 ├── Metadata/
 ├── Processed/
-└── Raw_FASTQ/
+└── raw_fastq/
 
 Mapped_reads/
 
@@ -29,10 +29,10 @@ Results/
 
 Scripts/
 
-Documentation/
+Data_stewardship/
 ```
 
-De map `Data/Raw_FASTQ/` is bedoeld voor de ruwe paired-end FASTQ-bestanden. Deze bestanden zijn lokaal gebruikt als input voor het mappen van reads. De map `Mapped_reads/` is bedoeld voor de BAM-bestanden die ontstaan na het alignen van reads tegen het referentiegenoom. De map `Reference/` is bedoeld voor het referentiegenoom, annotatiebestanden en indexbestanden. De map `Data/Processed/` bevat verwerkte data, zoals de count matrix. De map `Results/` bevat de output van de analyse, zoals tabellen, figuren en pathway-resultaten.
+De map `Data/raw_fastq/` is bedoeld voor de ruwe paired-end FASTQ-bestanden. Deze bestanden zijn lokaal gebruikt als input voor het mappen van reads. De map `Mapped_reads/` is bedoeld voor de BAM-bestanden die ontstaan na het alignen van reads tegen het referentiegenoom. De map `Reference/` is bedoeld voor het referentiegenoom, annotatiebestanden en indexbestanden. De map `Data/Processed/` bevat verwerkte data, zoals de count matrix. De map `Results/` bevat de output van de analyse, zoals tabellen, figuren en pathway-resultaten.
 
 Door deze structuur is duidelijk welke bestanden input, tussenbestand of resultaat zijn. Dit maakt het project overzichtelijker en beter reproduceerbaar.
 
@@ -66,7 +66,7 @@ In dit project is gewerkt met vier controles en vier RA-samples. De metadata is 
 
 Niet alle bestanden zijn geschikt om naar GitHub te uploaden. Grote bestanden zoals FASTQ-, BAM-, BAI-, FASTA- en GTF-bestanden zijn lokaal bewaard en uitgesloten via `.gitignore`. Dit voorkomt dat de repository onnodig groot wordt en houdt de GitHub-pagina overzichtelijk.
 
-De mappen `Data/Raw_FASTQ/`, `Mapped_reads/` en `Reference/` zijn wel zichtbaar gemaakt op GitHub door er een `README.md`-bestand in te plaatsen. In deze README-bestanden staat welke bestanden lokaal in deze mappen horen en waarom deze niet op GitHub zijn geplaatst.
+De mappen `Data/raw_fastq/`, `Mapped_reads/` en `Reference/` zijn wel zichtbaar gemaakt op GitHub door er een `README.md`-bestand in te plaatsen. In deze README-bestanden staat welke bestanden lokaal in deze mappen horen en waarom deze niet op GitHub zijn geplaatst.
 
 ## Reproduceerbaarheid
 

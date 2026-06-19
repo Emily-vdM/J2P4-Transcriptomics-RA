@@ -23,12 +23,12 @@ Reference/
 Reference_articles/
 Results/
 Scripts/
-Documentation/
+Data_stewardship/
 ```
 
-Deze structuur zorgt ervoor dat de verschillende onderdelen van het project gescheiden blijven. Scripts staan in `Scripts/`, resultaten in `Results/`, metadata en verwerkte data in `Data/`, en uitleg over databeheer in `Documentation/`.
+Deze structuur zorgt ervoor dat de verschillende onderdelen van het project gescheiden blijven. Scripts staan in `Scripts/`, resultaten in `Results/`, metadata en verwerkte data in `Data/`, en uitleg over databeheer in `Data_stewardship/`.
 
-De mappen `Data/Raw_FASTQ/`, `Mapped_reads/` en `Reference/` bevatten README-bestanden waarin staat welke lokale bestanden daar horen. Grote bestanden zoals FASTQ-, BAM- en referentiebestanden zijn niet toegevoegd aan GitHub.
+De mappen `Data/raw_fastq/`, `Mapped_reads/` en `Reference/` bevatten README-bestanden waarin staat welke lokale bestanden daar horen. Grote bestanden zoals FASTQ-, BAM- en referentiebestanden zijn niet toegevoegd aan GitHub.
 
 ## Gebruik van README-bestanden
 
@@ -37,10 +37,10 @@ README-bestanden zijn gebruikt om de repository begrijpelijker te maken. De hoof
 Voorbeelden hiervan zijn:
 
 ```text
-Data/Raw_FASTQ/README.md
+Data/raw_fastq/README.md
 Mapped_reads/README.md
 Reference/README.md
-Documentation/README.md
+Data_stewardship/README.md
 ```
 
 Hierdoor kan iemand die de repository opent sneller begrijpen welke bestanden aanwezig zijn en welke bestanden bewust niet zijn geüpload.
@@ -89,7 +89,7 @@ De R-scripts bevatten commentaarregels waarin de analysestappen worden uitgelegd
 
 ## Terugvindbaarheid
 
-Door de vaste mappenstructuur zijn bestanden makkelijk terug te vinden. Resultaattabellen staan bijvoorbeeld in `Results/Tables/`, figuren in `Results/Figures/` en pathway-output in `Results/Pathways/`. Bronnen staan in `Reference_articles/` en documentatie over databeheer staat in `Documentation/`.
+Door de vaste mappenstructuur zijn bestanden makkelijk terug te vinden. Resultaattabellen staan bijvoorbeeld in `Results/Tables/`, figuren in `Results/Figures/` en pathway-output in `Results/Pathways/`. Bronnen staan in `Reference_articles/` en documentatie over databeheer staat in `Data_stewardship/`.
 
 Deze structuur maakt de repository bruikbaar voor iemand die het project wil beoordelen of de analyse opnieuw wil uitvoeren.
 

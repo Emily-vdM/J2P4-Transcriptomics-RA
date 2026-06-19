@@ -34,6 +34,17 @@ De gebruikte dataset bestaat uit synoviumbiopten van vier controlepersonen en vi
 
 Welke genen, biologische processen en pathways verschillen tussen synoviumbiopten van personen met reumatoïde artritis en controlepersonen?
 
+### Doelstelling
+
+Het doel van dit project is om met behulp van een RNA-seq workflow in R te bepalen welke genen differentieel tot expressie komen in synoviumbiopten van personen met reumatoïde artritis ten opzichte van controlepersonen. Daarnaast wordt onderzocht welke biologische processen en pathways betrokken zijn bij deze genexpressieveranderingen.
+
+### Deelvragen
+
+1. Welke genen komen significant hoger of lager tot expressie in RA ten opzichte van controle?
+2. Welke KEGG-pathways overlappen met de significant differentieel tot expressie komende genen?
+3. Welke Gene Ontology-termen zijn oververtegenwoordigd in de significante genen wanneer rekening wordt gehouden met gene-length bias met `goseq`?
+4. Hoe kan de RNA-seq analyse reproduceerbaar en transparant worden beheerd met GitHub?
+
 ---
 
 ## Methode

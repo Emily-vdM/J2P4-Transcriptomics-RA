@@ -51,8 +51,8 @@ rsconnect/
 # Transcriptomics project - grote databestanden niet uploaden ####
 
 # Raw sequencing data niet uploaden
-Data/Raw_FASTQ/*
-!Data/Raw_FASTQ/README.md
+Data/raw_fastq/*
+!Data/raw_fastq/README.md
 
 *.fastq
 *.fq
