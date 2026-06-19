@@ -6,12 +6,12 @@ getwd()
 
   # Mappen aanmaken
     # Data           = inputdata en verwerkte data
-      # /Metadata    = sample-informatie, metadata, sessionInfo
+      # /Metadata    = sample-informatie en metadata
       # /Processed   = officiële countmatrix + zelfgemaakte NCBI countmatrix + featureCounts-output
       # /raw_fastq   = ruwe subset FASTQ-bestanden
     # Mapped_reads   = BAM, sorted BAM, BAI, summary/indel-bestanden
     # Reference      = NCBI FASTA, GTF en Rsubread-index
-    # Results        = analyse-uitkomsten
+    # Results        = analyse-uitkomsten en sessionInfo
       # /Tables      = DESeq2, significante genen, KEGG, GO tabellen
       # /Figures     = volcano plot en GO dotplot
       # /Pathways    = KEGG/pathview figuren
@@ -812,160 +812,383 @@ write.csv(
 )
 
 
-# GO-analyse met clusterProfiler - packages [3e deel] ####
+# GO-analyse met goseq - packages [3e deel] ####
 
-  # Doel:   # Onderzoeken welke Gene Ontology-termen oververtegenwoordigd zijn in de significant differentieel tot expressie komende genen.
-            # Omdat de count matrix gene symbols bevat en geen genlengtes, wordt hier clusterProfiler::enrichGO gebruikt.
-            # De significant veranderde genen worden vergeleken met alle betrouwbaar geteste genen als achtergrond/universe.
-
-
-  # Packages laden 
-
-library(clusterProfiler)   # BiocManager::install("clusterProfiler")
-library(enrichplot)        # BiocManager::install("enrichplot")
-library(ggplot2)           # install.packages("ggplot2")
+  # Doel:
+    # Onderzoeken welke Gene Ontology-termen oververtegenwoordigd zijn in de significant differentieel tot expressie komende genen.
+    # Voor RNA-seq data wordt hier goseq gebruikt, omdat goseq rekening kan houden met gene-length bias. 
+    # Langere genen hebben bij RNA-seq namelijk een grotere kans om als differentieel tot expressie komend gen gedetecteerd te worden.
 
 
+  # Packages laden
 
-# Achtergrondgenen maken ####
-    # De achtergrond bestaat uit alle betrouwbaar geteste genen met een Entrez-ID.
-    # Hiervoor gebruiken we resultaten_zonder_NA, omdat genen met padj = NA
-    # niet betrouwbaar getest zijn door DESeq2.
-
-resultaten_zonder_NA$ENTREZID <- mapIds(
-  org.Hs.eg.db,
-  keys = resultaten_zonder_NA$GeneSymbol,
-  column = "ENTREZID",
-  keytype = "SYMBOL",
-  multiVals = "first"
-)
-
-background_entrez <- unique(na.omit(resultaten_zonder_NA$ENTREZID))
+library(goseq)            # BiocManager::install("goseq")
+library(rtracklayer)      # BiocManager::install("rtracklayer")
+library(GenomicRanges)
+library(org.Hs.eg.db)
+library(AnnotationDbi)
+library(GO.db)            # BiocManager::install("GO.db")
+library(ggplot2)
 
 
 
+# Controle: benodigde objecten aanwezig ####
+    # Deze objecten worden eerder in het script gemaakt.
+    # Als één van deze FALSE geeft, moet het script eerst vanaf DESeq2 opnieuw gerund worden.
+
+exists("resultaten_df")
+exists("resultaten_zonder_NA")
+exists("significante_genen")
+
+stopifnot(exists("resultaten_df"))
+stopifnot(exists("resultaten_zonder_NA"))
+stopifnot(exists("significante_genen"))
 
 
 
-# Significant veranderde genen ####
-    # Dit zijn de genen met padj < 0.05 en |log2FoldChange| > 1.
 
-significante_genen$ENTREZID <- mapIds(
-  org.Hs.eg.db,
-  keys = significante_genen$GeneSymbol,
-  column = "ENTREZID",
-  keytype = "SYMBOL",
-  multiVals = "first"
-)
+# Genlengtes bepalen uit GTF-bestand ####
+    # goseq heeft lengte-informatie nodig om te corrigeren voor gene-length bias.
+    # Hiervoor wordt hetzelfde GTF-bestand gebruikt als bij het mappen/tellen van reads.
+    # Pas de bestandsnaam hieronder aan als jouw GTF-bestand anders heet.
 
-sig_entrez <- unique(na.omit(significante_genen$ENTREZID))
+gtf_file <- "Reference/genomic.gtf"
+
+file.exists(gtf_file)
+  # !!! MOET TRUE GEVEN !!!
+stopifnot(file.exists(gtf_file))
+
+  # GTF-bestand inladen
+gtf <- rtracklayer::import(gtf_file)
+
+  # Alleen exonen gebruiken voor genlengtes
+exons <- gtf[gtf$type == "exon"]
+
+  # Controleren welke kolommen met annotatie aanwezig zijn
+colnames(mcols(exons))
+
+  # Gennaam/symbool uit de GTF halen
+    # Bij NCBI RefSeq GTF staat het gensymbool meestal in de kolom 'gene'.
+if ("gene" %in% colnames(mcols(exons))) {
+  gene_symbols_gtf <- mcols(exons)$gene
+} else if ("gene_name" %in% colnames(mcols(exons))) {
+  gene_symbols_gtf <- mcols(exons)$gene_name
+} else if ("gene_id" %in% colnames(mcols(exons))) {
+  gene_symbols_gtf <- mcols(exons)$gene_id
+} else {
+  stop("Geen geschikte gennaam-kolom gevonden in de GTF. Controleer colnames(mcols(exons)).")
+}
+
+  # Gennaam toevoegen aan exon-object
+exons$gene_symbol <- as.character(gene_symbols_gtf)
+
+  # Exonen zonder gennaam verwijderen
+exons <- exons[
+  !is.na(exons$gene_symbol) &
+    exons$gene_symbol != ""
+]
+
+  # Exonen per gen groeperen
+exons_per_gene <- split(exons, exons$gene_symbol)
+
+  # Overlappende exonen per gen samenvoegen en totale exonlengte per gen berekenen
+gene_lengths <- sum(width(reduce(exons_per_gene)))
+
+  # Omzetten naar gewone numerieke vector
+gene_lengths <- as.numeric(gene_lengths)
+names(gene_lengths) <- names(exons_per_gene)
+
+  # Controleren
+head(gene_lengths)
+length(gene_lengths)
+summary(gene_lengths)
+
+  # Controle of genen uit DESeq2 ook in de lengtevector zitten
+sum(resultaten_zonder_NA$GeneSymbol %in% names(gene_lengths)) 
+sum(significante_genen$GeneSymbol %in% names(gene_lengths))
+
+
+
+
+
+
+# Binaire genenlijst maken voor goseq ####
+    # goseq verwacht een named vector met:
+      # 1 = significant differentieel tot expressie komend gen
+      # 0 = niet significant, maar wel betrouwbaar getest
+      # De achtergrond bestaat uit alle betrouwbaar geteste genen: genen zonder NA in padj.
+
+tested_genes <- unique(resultaten_zonder_NA$GeneSymbol)
+
+sig_genes <- unique(significante_genen$GeneSymbol)
+
+  # Alleen genen gebruiken waarvoor ook een genlengte beschikbaar is
+tested_genes_with_length <- intersect(tested_genes, names(gene_lengths))
+
+length(tested_genes)
+length(tested_genes_with_length)
+
+  # Binaire vector maken
+de_genes <- as.integer(tested_genes_with_length %in% sig_genes)
+names(de_genes) <- tested_genes_with_length
+
+  # Lengtevector in dezelfde volgorde zetten
+bias_data <- gene_lengths[names(de_genes)]
 
   # Controles
-length(background_entrez)
-length(sig_entrez)
-head(sig_entrez)
+table(de_genes)
+length(de_genes)
+length(bias_data)
+all(names(de_genes) == names(bias_data))
+  # !!! MOET TRUE GEVEN !!!
+stopifnot(all(names(de_genes) == names(bias_data)))
 
 
 
-# GO enrichment: Biological Process ####
-go_bp <- enrichGO(
-  gene = sig_entrez,
-  universe = background_entrez,
-  OrgDb = org.Hs.eg.db,
-  keyType = "ENTREZID",
-  ont = "BP",
-  pAdjustMethod = "BH",
-  pvalueCutoff = 0.05,
-  qvalueCutoff = 0.2,
-  readable = TRUE
+
+
+# Probability Weighting Function berekenen en opslaan ####
+    # Deze plot laat zien of genlengte invloed heeft op de kans dat een gen als differentieel tot expressie komend wordt gevonden.
+
+png(
+  filename = "Results/Figures/goseq_PWF_RA_vs_control.png",
+  width = 8,
+  height = 7,
+  units = "in",
+  res = 300
 )
 
-
-
-# GO enrichment: Molecular Function ####
-go_mf <- enrichGO(
-  gene = sig_entrez,
-  universe = background_entrez,
-  OrgDb = org.Hs.eg.db,
-  keyType = "ENTREZID",
-  ont = "MF",
-  pAdjustMethod = "BH",
-  pvalueCutoff = 0.05,
-  qvalueCutoff = 0.2,
-  readable = TRUE
+pwf <- nullp(
+  de_genes,
+  bias.data = bias_data,
+  plot.fit = TRUE
 )
 
+dev.off()
+
+  # Controleren en openen
+file.exists("Results/Figures/goseq_PWF_RA_vs_control.png")
+browseURL("Results/Figures/goseq_PWF_RA_vs_control.png")
+
+head(pwf)
+summary(pwf$bias.data)
 
 
-# GO enrichment: Cellular Component ####
-go_cc <- enrichGO(
-  gene = sig_entrez,
-  universe = background_entrez,
-  OrgDb = org.Hs.eg.db,
-  keyType = "ENTREZID",
-  ont = "CC",
-  pAdjustMethod = "BH",
-  pvalueCutoff = 0.05,
-  qvalueCutoff = 0.2,
-  readable = TRUE
+
+
+
+# GO-annotatie ophalen ####
+    # De genen in deze analyse zijn gene symbols.
+    # Met org.Hs.eg.db worden GO-termen gekoppeld aan deze gene symbols.
+
+gene2go_all <- AnnotationDbi::select(
+  org.Hs.eg.db,
+  keys = names(de_genes),
+  keytype = "SYMBOL",
+  columns = c("GOALL", "ONTOLOGYALL")
 )
+
+  # Dubbele regels en NA's verwijderen
+gene2go_all <- unique(gene2go_all)
+
+gene2go_all <- gene2go_all[
+  !is.na(gene2go_all$GOALL) &
+    !is.na(gene2go_all$ONTOLOGYALL),
+]
+
+  # Controles 
+head(gene2go_all) 
+table(gene2go_all$ONTOLOGYALL) 
+length(unique(gene2go_all$SYMBOL))
+
+
+# Functie om goseq per GO-ontologie uit te voeren ####
+
+run_goseq_ontology <- function(ontology_code) {
+  
+  # GO-termen selecteren voor BP, MF of CC
+  gene2go_ont <- gene2go_all[
+    gene2go_all$ONTOLOGYALL == ontology_code,
+    c("SYMBOL", "GOALL")
+  ]
+  
+  # Omzetten naar gene2cat-formaat:
+  # per gen een lijst met bijbehorende GO-termen
+  gene2cat <- split(gene2go_ont$GOALL, gene2go_ont$SYMBOL)
+  
+  # Alleen genen bewaren die ook in de goseq-genenlijst zitten
+  gene2cat <- gene2cat[names(gene2cat) %in% names(de_genes)]
+  
+  # goseq uitvoeren
+  go_result <- goseq(
+    pwf,
+    gene2cat = gene2cat,
+    method = "Wallenius"
+  )
+  
+  # GO-termen en ontologie toevoegen
+  go_result$term <- Term(GOTERM[go_result$category])
+  go_result$ontology <- Ontology(GOTERM[go_result$category])
+  
+  # BH-correctie uitvoeren op de over-representation p-waarde
+  go_result$padj <- p.adjust(
+    go_result$over_represented_pvalue,
+    method = "BH"
+  )
+  
+  # GeneRatio toevoegen: aantal significante genen in GO-term / totaal aantal significante genen
+  go_result$GeneRatio <- go_result$numDEInCat / sum(de_genes == 1)
+  
+  # Sorteren op aangepaste p-waarde
+  go_result <- go_result[
+    order(go_result$padj, decreasing = FALSE),
+  ]
+  
+  return(go_result)
+}
+
+
+
+
+
+
+# GO-analyse uitvoeren per ontologie ####
+
+go_bp_all <- run_goseq_ontology("BP")
+go_mf_all <- run_goseq_ontology("MF")
+go_cc_all <- run_goseq_ontology("CC")
+
+  # Significante GO-termen selecteren
+go_bp_sig <- go_bp_all[
+  !is.na(go_bp_all$padj) &
+    go_bp_all$padj < 0.05,
+]
+
+go_mf_sig <- go_mf_all[
+  !is.na(go_mf_all$padj) &
+    go_mf_all$padj < 0.05,
+]
+
+go_cc_sig <- go_cc_all[
+  !is.na(go_cc_all$padj) &
+    go_cc_all$padj < 0.05,
+]
 
   # Resultaten bekijken
-head(go_bp)
-head(go_mf)
-head(go_cc)
+head(go_bp_sig)
+head(go_mf_sig)
+head(go_cc_sig)
+
+  # Aantal significante GO-termen
+nrow(go_bp_sig)
+nrow(go_mf_sig)
+nrow(go_cc_sig)
+
 
 
 
 # GO-resultaten opslaan ####
+    # Dezelfde bestandsnamen worden gebruikt als eerder, zodat de links in de README blijven werken.
 
-go_bp_df <- as.data.frame(go_bp)
-go_mf_df <- as.data.frame(go_mf)
-go_cc_df <- as.data.frame(go_cc)
-
-write.csv(go_bp_df, "Results/Tables/GO_Biological_Process_RA_vs_control.csv", row.names = FALSE)
-write.csv(go_mf_df, "Results/Tables/GO_Molecular_Function_RA_vs_control.csv", row.names = FALSE)
-write.csv(go_cc_df, "Results/Tables/GO_Cellular_Component_RA_vs_control.csv", row.names = FALSE)
-
-  # Aantal significante GO-termen
-nrow(go_bp_df)
-nrow(go_mf_df)
-nrow(go_cc_df)
-
-# GO dotplot maken ####
-    # Minder categorieën en bredere figuur zodat lange GO-termen beter leesbaar zijn.
-
-go_bp_plot <- dotplot(
-  go_bp,
-  showCategory = 8,
-  label_format = 45,
-  title = "GO Biological Process - RA vs controle"
-) +
-  theme(
-    axis.text.y = element_text(size = 10),
-    axis.text.x = element_text(size = 10),
-    plot.title = element_text(size = 14, face = "bold")
-  )
-
-  # Plot bekijken in RStudio
-go_bp_plot
-
-  # Plot opslaan
-ggsave(
-  filename = "Results/Figures/GO_BP_dotplot_RA_vs_control.png",
-  plot = go_bp_plot,
-  width = 14,
-  height = 7,
-  dpi = 300
+write.csv(
+  go_bp_sig,
+  "Results/Tables/GO_Biological_Process_RA_vs_control.csv",
+  row.names = FALSE
 )
 
+write.csv(
+  go_mf_sig,
+  "Results/Tables/GO_Molecular_Function_RA_vs_control.csv",
+  row.names = FALSE
+)
+
+write.csv(
+  go_cc_sig,
+  "Results/Tables/GO_Cellular_Component_RA_vs_control.csv",
+  row.names = FALSE
+)
+
+  # Optioneel: ook alle GO-resultaten opslaan, inclusief niet-significante termen
+write.csv(
+  go_bp_all,
+  "Results/Tables/GO_Biological_Process_RA_vs_control_all_goseq.csv",
+  row.names = FALSE
+)
+
+write.csv(
+  go_mf_all,
+  "Results/Tables/GO_Molecular_Function_RA_vs_control_all_goseq.csv",
+  row.names = FALSE
+)
+
+write.csv(
+  go_cc_all,
+  "Results/Tables/GO_Cellular_Component_RA_vs_control_all_goseq.csv",
+  row.names = FALSE
+)
+
+  # Controleren of bestanden zijn opgeslagen 
+file.exists("Results/Tables/GO_Biological_Process_RA_vs_control.csv") 
+file.exists("Results/Tables/GO_Molecular_Function_RA_vs_control.csv") 
+file.exists("Results/Tables/GO_Cellular_Component_RA_vs_control.csv")
+
+
+# GO Biological Process dotplot maken ####
+    # Dotplot van de top 8 GO Biological Process-termen op basis van padj.
+
+go_bp_plot_df <- head(go_bp_sig, 8)
+
+if (nrow(go_bp_plot_df) > 0) {
+  
+  # Lange termen afbreken zodat de figuur leesbaar blijft
+  go_bp_plot_df$term_wrapped <- sapply(
+    go_bp_plot_df$term,
+    function(x) paste(strwrap(x, width = 45), collapse = "\n")
+  )
+  
+  go_bp_plot <- ggplot(
+    go_bp_plot_df,
+    aes(
+      x = GeneRatio,
+      y = reorder(term_wrapped, GeneRatio),
+      size = numDEInCat,
+      color = padj
+    )
+  ) +
+    geom_point() +
+    labs(
+      title = "GO Biological Process - RA vs controle",
+      x = "GeneRatio",
+      y = NULL,
+      size = "Count",
+      color = "padj"
+    ) +
+    theme_bw() +
+    theme(
+      axis.text.y = element_text(size = 10),
+      axis.text.x = element_text(size = 10),
+      plot.title = element_text(size = 14, face = "bold")
+    )
+  
+  # Plot bekijken in RStudio
+  go_bp_plot
+  
+  # Plot opslaan
+  ggsave(
+    filename = "Results/Figures/GO_BP_dotplot_RA_vs_control.png",
+    plot = go_bp_plot,
+    width = 14,
+    height = 7,
+    dpi = 300
+  )
+  
   # Controleren en openen
-file.exists("Results/Figures/GO_BP_dotplot_RA_vs_control.png")
-browseURL("Results/Figures/GO_BP_dotplot_RA_vs_control.png")
-
-
-
-
+  file.exists("Results/Figures/GO_BP_dotplot_RA_vs_control.png")
+  browseURL("Results/Figures/GO_BP_dotplot_RA_vs_control.png")
+  
+} else {
+  message("Er zijn geen significante GO Biological Process-termen gevonden met padj < 0.05.")
+}
 
 # RStudio versie & Package versies ####
 capture.output(
@@ -977,6 +1200,7 @@ capture.output(
     print(sessionInfo())
     
     cat("\nBelangrijkste package versies:\n")
+    cat("BiocManager:", as.character(packageVersion("BiocManager")), "\n")
     cat("Rsubread:", as.character(packageVersion("Rsubread")), "\n")
     cat("Rsamtools:", as.character(packageVersion("Rsamtools")), "\n")
     cat("DESeq2:", as.character(packageVersion("DESeq2")), "\n")
@@ -985,11 +1209,14 @@ capture.output(
     cat("pathview:", as.character(packageVersion("pathview")), "\n")
     cat("org.Hs.eg.db:", as.character(packageVersion("org.Hs.eg.db")), "\n")
     cat("AnnotationDbi:", as.character(packageVersion("AnnotationDbi")), "\n")
-    cat("clusterProfiler:", as.character(packageVersion("clusterProfiler")), "\n")
-    cat("enrichplot:", as.character(packageVersion("enrichplot")), "\n")
+    cat("goseq:", as.character(packageVersion("goseq")), "\n")
+    cat("rtracklayer:", as.character(packageVersion("rtracklayer")), "\n")
+    cat("GenomicRanges:", as.character(packageVersion("GenomicRanges")), "\n")
+    cat("GO.db:", as.character(packageVersion("GO.db")), "\n")
     cat("ggplot2:", as.character(packageVersion("ggplot2")), "\n")
   },
   file = "Results/sessionInfo_transcriptomics_RA.txt"
 )
 
 file.exists("Results/sessionInfo_transcriptomics_RA.txt")
+
