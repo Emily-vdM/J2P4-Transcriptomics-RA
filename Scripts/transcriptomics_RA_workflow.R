@@ -1,7 +1,7 @@
 # Start ####
 
   # Working directory instellen
-setwd("C:/Users/31613/OneDrive - NHL Stenden/00 jaar 2/periode 4/Transcriptomics/Github/J2P4-Transcriptomics-RA/Scripts/")
+setwd("C:/Users/31613/OneDrive - NHL Stenden/00 jaar 2/periode 4/Transcriptomics/Github/J2P4-Transcriptomics-RA/")
 getwd()
 
   # Mappen aanmaken
@@ -357,14 +357,10 @@ saveRDS(
   "Data/Processed/featureCounts_NCBI_GRCh38p14_subset40k.rds"
 )
 
-# Differentiele genexpressie analyse ####
-    # In dit deel wordt de count matrix gebruikt om genen te vinden
-    # die verschillend tot expressie komen tussen RA samples en controle samples.
-
-
 # Count matrix inladen ####
-    # De count matrix bevat per gen het aantal reads per sample.
-    # Deze matrix is gemaakt met featureCounts.
+   # Voor de differentiële genexpressieanalyse wordt de officiële count matrix gebruikt:
+   # Data/Processed/count_matrix_RA.txt
+    # De zelfgemaakte NCBI count matrix is opgeslagen als extra output van de mapping/featureCounts-stap.
 
 counts_raw <- read.delim(
   "Data/Processed/count_matrix_RA.txt",
@@ -394,7 +390,6 @@ sum(rowSums(counts) > 0)
 
   # Count matrix opslaan als CSV voor overzicht
 write.csv(counts, "Data/Processed/RA_countmatrix.csv")
-
 
 
   # Packages laden [2e deel] ####
@@ -994,7 +989,7 @@ capture.output(
     cat("enrichplot:", as.character(packageVersion("enrichplot")), "\n")
     cat("ggplot2:", as.character(packageVersion("ggplot2")), "\n")
   },
-  file = "Data/Metadata/sessionInfo_transcriptomics_RA.txt"
+  file = "Results/sessionInfo_transcriptomics_RA.txt"
 )
 
-file.exists("Data/Metadata/sessionInfo_transcriptomics_RA.txt")
+file.exists("Results/sessionInfo_transcriptomics_RA.txt")
