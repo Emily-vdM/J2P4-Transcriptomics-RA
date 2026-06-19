@@ -1,7 +1,7 @@
 # Start ####
 
   # Working directory instellen
-setwd("C:/Users/31613/OneDrive - NHL Stenden/00 jaar 2/periode 4/Transcriptomics/Casus/")
+setwd("C:/Users/31613/OneDrive - NHL Stenden/00 jaar 2/periode 4/Transcriptomics/Github/J2P4-Transcriptomics-RA/Scripts/")
 getwd()
 
   # Mappen aanmaken
