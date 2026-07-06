@@ -1,244 +1,141 @@
-# J2P4-Transcriptomics-RA
+# RNA-seq laat verhoogde immuunactivatie zien in RA-synovium
 
-RNA-seq analyse van synoviumbiopten van personen met reumatoïde artritis en controlepersonen met behulp van `Rsubread`, `DESeq2`, KEGG/pathview en Gene Ontology analyse met `goseq`.
-
----
-
-## Inhoud/structuur
-
-Deze repository bevat de uitwerking van de transcriptomics-casus voor J2P4. De analyse is uitgevoerd in R en de repository is gestructureerd zodat data, scripts, resultaten, referenties en beheerdocumentatie gescheiden zijn opgeslagen.
-
-* `Data/Metadata/` – metadata over de gebruikte samples. In deze map staat ook een README met uitleg over de metadata-bestanden.
-* `Data/Processed/` – verwerkte data, zoals de officiële count matrix en zelfgemaakte featureCounts-output. In deze map staat ook een README met uitleg over de bestanden.
-* `Data/raw_fastq/` – map voor ruwe FASTQ-bestanden. De bestanden zelf zijn niet toegevoegd aan GitHub.
-* `Mapped_reads/` – map voor lokaal opgeslagen BAM-bestanden. De bestanden zelf zijn niet toegevoegd aan GitHub.
-* `Reference/` – map voor referentiegenoom-, annotatie- en indexbestanden. De bestanden zelf zijn niet toegevoegd aan GitHub.
-* `Reference_articles/` – gebruikte literatuurbronnen.
-* `Results/Tables/` – resultaat-tabellen uit de analyse.
-* `Results/Figures/` – figuren, zoals de volcano plot, GO-dotplot en goseq PWF-plot.
-* `Results/Pathways/` – KEGG/pathview-output.
-* `Scripts/` – R-scripts voor de transcriptomics-analyse.
-* `Data_stewardship/` – uitleg over data stewardship en GitHub-beheer.
+Deze repository bevat een RNA-seq analyse van synoviumbiopten van personen met reumatoïde artritis (RA) en controlepersonen. Het doel was om te bepalen welke genen hoger of lager tot expressie komen in RA, en welke biologische processen en pathways daarbij betrokken zijn.
 
 ---
 
-## Inleiding
+## Snel naar bestanden
 
-Reumatoïde artritis, afgekort RA, is een systemische auto-immuunziekte waarbij ontsteking van het gewrichtsslijmvlies een belangrijke rol speelt. Deze ontsteking wordt ook wel synovitis genoemd en kan uiteindelijk leiden tot gewrichtsschade. De precieze oorzaak van RA is niet volledig bekend, maar genetische aanleg, omgevingsfactoren en een verstoord immuunsysteem spelen waarschijnlijk samen een rol.
+* [R-script](Scripts/transcriptomics_RA_workflow.R)
+* [SessionInfo en packageversies](Results/sessionInfo_transcriptomics_RA.txt)
+* [Metadata](Data/Metadata/sample_metadata_RA.csv)
+* [DESeq2 resultaten](Results/Tables/DESeq2_resultaten_RA_vs_control.csv)
+* [GO-resultaten](Results/Tables/GO_Biological_Process_RA_vs_control.csv)
+* [KEGG-overlap](Results/Tables/KEGG_pathways_met_overlap.csv)
+* [Data stewardship](Data_stewardship/Beheren.md)
+* [GitHub beheer](Data_stewardship/GitHub_beheer.md)
 
-In deze casus wordt RNA-seq data gebruikt om verschillen in genexpressie te onderzoeken tussen personen met RA en controlepersonen. Met RNA-seq kan op grote schaal worden bepaald welke genen meer of minder tot expressie komen. Hierdoor kan inzicht worden verkregen in biologische processen en pathways die betrokken zijn bij het ziekteproces.
+---
 
-De gebruikte dataset bestaat uit synoviumbiopten van vier controlepersonen en vier personen met gevestigde RA. De personen met RA zijn ACPA-positief en de controlepersonen zijn ACPA-negatief. Het doel van deze analyse is om met behulp van R te onderzoeken welke genen differentieel tot expressie komen in RA ten opzichte van controle, en welke KEGG-pathways en Gene Ontology-termen hierbij betrokken zijn.
+## Inleiding en doel
 
-### Onderzoeksvraag
+Reumatoïde artritis is een chronische systemische auto-immuunziekte waarbij ontsteking van het synovium, ook wel synovitis, centraal staat. Deze ontsteking kan leiden tot pijn, stijfheid en gewrichtsschade. RA ontstaat waarschijnlijk door een combinatie van genetische aanleg, omgevingsfactoren en een verstoorde immuunrespons. Vroege herkenning en behandeling zijn belangrijk, omdat gewrichtsschade niet volledig herstelt.
 
-Welke genen, biologische processen en pathways verschillen tussen synoviumbiopten van personen met reumatoïde artritis en controlepersonen?
+Transcriptomics kan helpen om RA beter te begrijpen, omdat RNA-seq laat zien welke genen actief zijn in ziek en gezond weefsel. Eerder onderzoek naar RA-genexpressie liet zien dat synoviumweefsel gebruikt kan worden om ziekte-gerelateerde genexpressiepatronen te onderzoeken.
 
-### Doelstelling
+In dit project is RNA-seq data van vier controlepersonen en vier personen met gevestigde RA geanalyseerd. De RA-samples waren ACPA-positief en de controles ACPA-negatief. De hoofdvraag was:
 
-Het doel van dit project is om met behulp van een RNA-seq workflow in R te bepalen welke genen differentieel tot expressie komen in synoviumbiopten van personen met reumatoïde artritis ten opzichte van controlepersonen. Daarnaast wordt onderzocht welke biologische processen en pathways betrokken zijn bij deze genexpressieveranderingen.
+**Welke genen, biologische processen en pathways verschillen tussen synoviumbiopten van personen met RA en controlepersonen?**
 
-### Deelvragen
-
-1. Welke genen komen significant hoger of lager tot expressie in RA ten opzichte van controle?
-2. Welke KEGG-pathways overlappen met de significant differentieel tot expressie komende genen?
-3. Welke Gene Ontology-termen zijn oververtegenwoordigd in de significante genen wanneer rekening wordt gehouden met gene-length bias met `goseq`?
-4. Hoe kan de RNA-seq analyse reproduceerbaar en transparant worden beheerd met GitHub?
+Daarbij is gekeken naar differentiële genexpressie, KEGG-pathways, Gene Ontology-termen en reproduceerbaar databeheer met GitHub.
 
 ---
 
 ## Methode
 
-De analyse is uitgevoerd in R. De ruwe sequencingdata bestond uit paired-end FASTQ-bestanden van acht samples. Eerst zijn de reads gemapt tegen het humane referentiegenoom met het R-package `Rsubread`. Voor deze analyse is het humane NCBI RefSeq referentiegenoom GRCh38.p14 gebruikt, met assembly accession `GCF_000001405.40_GRCh38.p14`. De FASTA- en GTF-bestanden zijn van dezelfde bron gebruikt, zodat het referentiegenoom en de annotatie met elkaar overeenkomen.
+De analyse is uitgevoerd in **R 4.5.3**. De ruwe data bestond uit paired-end RNA-seq FASTQ-bestanden uit het onderzoek van Platzer et al. (2019). Voor de praktische workflow is gewerkt met subset40k FASTQ-bestanden van acht SRA-runs: `SRR4785819`, `SRR4785820`, `SRR4785828`, `SRR4785831`, `SRR4785979`, `SRR4785980`, `SRR4785986` en `SRR4785988`.
 
-Na het mappen zijn de BAM-bestanden gebruikt om met `featureCounts` een count matrix te maken. Deze zelfgemaakte count matrix is opgeslagen in `Data/Processed/RA_countmatrix_NCBI_GRCh38p14_subset40k.csv` en laat zien hoe de count matrix vanuit gemapte reads kan worden opgebouwd.
+De reads zijn gemapt met `Rsubread` tegen het humane NCBI RefSeq referentiegenoom GRCh38.p14 (`GCF_000001405.40_GRCh38.p14`). Met `featureCounts` is een eigen count matrix gemaakt als onderdeel van de workflow. Voor de uiteindelijke differentiële genexpressieanalyse is `Data/Processed/count_matrix_RA.txt` gebruikt als officiële count matrix.
 
-Voor de uiteindelijke differentiële genexpressieanalyse is het bestand `Data/Processed/count_matrix_RA.txt` gebruikt als officiële input voor `DESeq2`. Deze count matrix bevat per gen het aantal reads per sample. De count matrix is ingelezen in R, omgezet naar een integer matrix en gekoppeld aan de samplemetadata. In DESeq2 is de conditie `control` ingesteld als referentiegroep. Hierdoor betekent een positieve `log2FoldChange` dat een gen hoger tot expressie komt in RA ten opzichte van controle.
+Met `DESeq2` is RA vergeleken met controle. De controlegroep is ingesteld als referentie, waardoor een positieve `log2FoldChange` hogere expressie in RA betekent. Significante genen zijn geselecteerd met `padj < 0.05` en `|log2FoldChange| > 1`.
 
-Significante genen zijn geselecteerd op basis van `padj < 0.05` en `|log2FoldChange| > 1`. Daarna zijn de resultaten geannoteerd met Entrez ID’s met behulp van `org.Hs.eg.db` en `AnnotationDbi`. Voor visualisatie is een volcano plot gemaakt met `EnhancedVolcano`. Daarnaast is met `pathview` de KEGG-pathway voor reumatoïde artritis gevisualiseerd.
-
-Voor de Gene Ontology analyse is gebruikgemaakt van `goseq`. Deze methode is gekozen omdat `goseq` specifiek geschikt is voor GO-analyse van RNA-seq data en rekening kan houden met gene-length bias. Bij RNA-seq hebben langere genen namelijk een grotere kans om als differentieel tot expressie komend gen gedetecteerd te worden. Hierdoor kunnen standaard over-representation analyses vertekende GO-resultaten geven.
-
-Voor de `goseq`-analyse zijn genlengtes bepaald uit het gebruikte NCBI RefSeq GTF-bestand (`Reference/genomic.gtf`). Hiervoor zijn de exonregio’s per gen samengevoegd en is per gen de totale exonlengte berekend. Van de 19.872 betrouwbaar geteste genen konden 17.551 genen gekoppeld worden aan een genlengte uit de GTF. Binnen deze set waren 4.286 genen significant differentieel tot expressie komend.
-
-Daarna is een binaire genenlijst gemaakt voor `goseq`, waarbij significante genen de waarde 1 kregen en niet-significante betrouwbaar geteste genen de waarde 0. Met `nullp()` is een Probability Weighting Function (PWF) berekend om te corrigeren voor lengtebias. Vervolgens is met `goseq()` en de Wallenius-methode onderzocht welke GO-termen oververtegenwoordigd waren binnen de drie GO-ontologieën: Biological Process (BP), Molecular Function (MF) en Cellular Component (CC). De p-waarden zijn gecorrigeerd met de Benjamini-Hochberg methode.
-
-De PWF-plot van `goseq` is opgeslagen als aanvullende controlefiguur:
-
-* [goseq PWF plot](Results/Figures/goseq_PWF_RA_vs_control.png)
-
-Het volledige R-script waarmee de analyse is uitgevoerd staat in:
-
-* [Transcriptomics RA workflow script](Scripts/transcriptomics_RA_workflow.R)
-
-### Globale workflow
+Voor functionele interpretatie zijn genen geannoteerd met `org.Hs.eg.db` en `AnnotationDbi`. De KEGG RA-pathway is gevisualiseerd met `pathview`. De GO-analyse is uitgevoerd met `goseq`, omdat deze methode rekening houdt met gene-length bias bij RNA-seq data. Hiervoor zijn genlengtes bepaald uit het gebruikte GTF-bestand en is met `nullp()` een Probability Weighting Function berekend. De PWF-plot staat hier: [goseq PWF plot](Results/Figures/goseq_PWF_RA_vs_control.png).
 
 ```mermaid
 flowchart TD
-    A[Raw paired-end FASTQ] --> B[Reads mappen met Rsubread]
+    A[Paired-end FASTQ] --> B[Reads mappen met Rsubread]
     B --> C[BAM-bestanden]
-    C --> D[Count matrix maken met featureCounts]
+    C --> D[Count matrix met featureCounts]
     D --> E[Differentiële genexpressie met DESeq2]
-    E --> F[Annotatie met SYMBOL en ENTREZID]
+    E --> F[Annotatie SYMBOL en ENTREZID]
     F --> G[Volcano plot]
-    F --> H[KEGG/pathview analyse]
-    F --> I[Gene Ontology analyse met goseq]
+    F --> H[KEGG/pathview]
+    F --> I[GO-analyse met goseq]
 ```
 
 ---
 
 ## Resultaten
 
-Na het uitvoeren van de DESeq2-analyse zijn de RA-samples vergeleken met de controles. Hierbij was de controlegroep ingesteld als referentiegroep. Een positieve `log2FoldChange` betekent daarom dat een gen hoger tot expressie komt in RA ten opzichte van controle, terwijl een negatieve `log2FoldChange` betekent dat een gen lager tot expressie komt in RA.
+### Differentiële genexpressie
 
-Op basis van de criteria `padj < 0.05` en `|log2FoldChange| > 1` zijn in totaal **4528 differentieel tot expressie komende genen** gevonden. Hiervan kwamen **2057 genen hoger tot expressie in RA** en **2471 genen lager tot expressie in RA**. De volledige DESeq2-resultaten en de lijst met significante genen zijn opgeslagen in de map `Results/Tables/`.
-
-Belangrijke resultaatbestanden zijn:
-
-* [DESeq2 resultaten](Results/Tables/DESeq2_resultaten_RA_vs_control.csv)
-* [Aantal differentieel tot expressie komende genen](Results/Tables/DEG_aantallen_RA_vs_control.csv)
-* [Significante genen met Entrez ID](Results/Tables/significante_genen_RA_vs_control_met_EntrezID.csv)
-
-### Volcano plot
-
-De volcano plot laat per gen de `log2FoldChange` en aangepaste p-waarde zien. Genen die hoger tot expressie komen in RA liggen rechts van het midden. Genen die lager tot expressie komen in RA liggen links van het midden. De rode punten voldoen aan zowel de p-waardegrens als de fold change-grens.
+Met DESeq2 zijn **4528 differentieel tot expressie komende genen** gevonden. Daarvan kwamen **2057 genen hoger** en **2471 genen lager** tot expressie in RA ten opzichte van controle. De volcano plot laat zien dat er aan beide kanten veel significant veranderde genen aanwezig zijn.
 
 ![Volcano plot RA vs controle](Results/Figures/Volcanoplot_RA_vs_control.png)
 
-In de volcano plot is te zien dat er veel genen significant verschillen tussen RA en controle. Sterk significant lager tot expressie komende genen zijn onder andere `ANKRD30BL`, `MT-ND6`, `RAB3IL1`, `SLC9A3R2` en `ZNF598`. Aan de rechterkant van de plot is onder andere `SRGN` zichtbaar als gen met hogere expressie in RA.
+*Figuur 1. Volcano plot van RA versus controle. Rode punten voldoen aan `padj < 0.05` en `|log2FoldChange| > 1`. Rechts staan genen met hogere expressie in RA en links genen met lagere expressie in RA.*
 
-Daarnaast kwamen in de lijst met sterk hoger tot expressie komende genen meerdere immunoglobuline-gerelateerde genen naar voren, zoals `IGHV3-53`, `IGKV1-39`, `IGKV3D-15`, `IGHV6-1` en `IGHV1-69`. Dit wijst op betrokkenheid van B-cellen, antistoffen en adaptieve immuunprocessen in het RA-synovium.
+De sterkst hoger tot expressie komende genen waren vooral immunoglobuline-gerelateerde genen, zoals `IGHV3-53`, `IGKV1-39`, `IGKV3D-15`, `IGHV6-1` en `IGHV1-69`. Dit wijst op betrokkenheid van B-cellen en antistof-gerelateerde processen.
 
-### Gene Ontology analyse met goseq
+### Gene Ontology analyse
 
-De Gene Ontology analyse is uitgevoerd met `goseq` om te onderzoeken welke biologische processen, moleculaire functies en cellulaire componenten oververtegenwoordigd zijn in de lijst met significante genen. Hierbij is rekening gehouden met gene-length bias op basis van genlengtes uit het GTF-bestand.
-
-In totaal zijn **215 significante GO-termen** gevonden voor Biological Process, **8 GO-termen** voor Molecular Function en **7 GO-termen** voor Cellular Component.
-
-De GO Biological Process-resultaten laten vooral termen zien die te maken hebben met immuunactiviteit. Belangrijke termen zijn onder andere:
-
-* `adaptive immune response`
-* `immune system process`
-* `immune response`
-* `leukocyte activation`
-* `cell activation`
-* `lymphocyte activation`
-* `B cell mediated immunity`
-* `adaptive immune response based on somatic recombination of immune receptors built from immunoglobulin superfamily domains`
-* `immunoglobulin mediated immune response`
-
-De GO-dotplot laat zien dat vooral brede immuunprocessen, leukocytactivatie, lymfocytactivatie, adaptieve immuunrespons en B-cel-gemedieerde immuniteit verrijkt zijn.
+Met `goseq` zijn **215 significante Biological Process-termen**, **8 Molecular Function-termen** en **7 Cellular Component-termen** gevonden. De belangrijkste Biological Process-termen wijzen vooral op immuunactivatie, waaronder `immune system process`, `immune response`, `cell activation`, `leukocyte activation`, `lymphocyte activation`, `adaptive immune response` en `B cell mediated immunity`.
 
 ![GO Biological Process dotplot](Results/Figures/GO_BP_dotplot_RA_vs_control.png)
 
-De GO Molecular Function-resultaten bevatten onder andere `antigen binding`, `immunoglobulin receptor binding`, `GTPase binding` en `enzyme binding`. De GO Cellular Component-resultaten bevatten vooral termen zoals `immunoglobulin complex`, `IgG immunoglobulin complex`, `IgM immunoglobulin complex`, `immunoglobulin complex, circulating`, `extracellular region` en `plasma membrane signaling receptor complex`.
+*Figuur 2. GO Biological Process-dotplot na correctie voor gene-length bias met `goseq`. De verrijkte termen wijzen vooral op immuunrespons, leukocytactivatie, lymfocytactivatie en B-cel-gemedieerde immuniteit.*
 
-Samen ondersteunen deze resultaten dat immuunactivatie, antigeenbinding, B-celactiviteit en immunoglobuline-gerelateerde processen sterk aanwezig zijn in de differentieel tot expressie komende genen.
-
-De significante GO-resultaten zijn opgeslagen in:
-
-* [GO Biological Process](Results/Tables/GO_Biological_Process_RA_vs_control.csv)
-* [GO Molecular Function](Results/Tables/GO_Molecular_Function_RA_vs_control.csv)
-* [GO Cellular Component](Results/Tables/GO_Cellular_Component_RA_vs_control.csv)
-
-Daarnaast zijn de volledige goseq-resultaten, inclusief niet-significante GO-termen, opgeslagen in:
-
-* [GO Biological Process alle goseq-resultaten](Results/Tables/GO_Biological_Process_RA_vs_control_all_goseq.csv)
-* [GO Molecular Function alle goseq-resultaten](Results/Tables/GO_Molecular_Function_RA_vs_control_all_goseq.csv)
-* [GO Cellular Component alle goseq-resultaten](Results/Tables/GO_Cellular_Component_RA_vs_control_all_goseq.csv)
+De Molecular Function- en Cellular Component-resultaten ondersteunen dit beeld, met termen zoals `antigen binding`, `immunoglobulin receptor binding` en `immunoglobulin complex`.
 
 ### KEGG-pathwayanalyse
 
-Voor de KEGG-analyse is gekeken welke pathways overlap hebben met de significante genen. Daarnaast is de KEGG-pathway voor reumatoïde artritis (`hsa05323`) gevisualiseerd met `pathview`.
+De KEGG RA-pathway (`hsa05323`) is gevisualiseerd met `pathview`. In deze pathway kwamen meerdere ontstekings- en immuungerelateerde genen hoger tot expressie in RA, waaronder `IFNG`, `CD80/86`, `MHCII`, `CD28`, `CTLA4`, `IL6`, `IL1B`, `IL8`, `CCL2`, `CCL3`, `CXCL1`, `CXCL5`, `TLR2/4` en `MMP1/3`.
 
 ![KEGG rheumatoid arthritis pathway](Results/Pathways/hsa05323.RA_vs_control.png)
 
-In de KEGG-visualisatie geeft rood een hogere expressie in RA aan en groen een lagere expressie in RA. In de RA-pathway zijn meerdere ontstekings- en immuungerelateerde genen hoger tot expressie in RA, waaronder `IFNG`, `CD80/86`, `MHCII`, `CD28`, `CTLA4`, `IL6`, `IL1B`, `IL8`, `CCL2`, `CCL3`, `CXCL1`, `CXCL5`, `TLR2/4` en `MMP1/3`. Dit wijst op verhoogde ontstekings- en immuunsignalering in de RA-samples.
+*Figuur 3. KEGG RA-pathway met `pathview`. Rood geeft hogere expressie in RA aan en groen lagere expressie in RA. De figuur laat verhoogde ontstekings- en immuunsignalering in RA zien.*
 
-De KEGG-overlapresultaten bevatten meerdere pathways die passen bij ontsteking, immuunactivatie en celsignalering. Voorbeelden hiervan zijn:
-
-* `Cytokine-cytokine receptor interaction`
-* `MAPK signaling pathway`
-* `PI3K-Akt signaling pathway`
-* `NOD-like receptor signaling pathway`
-* `Chemokine signaling pathway`
-* `TNF signaling pathway`
-* `NF-kappa B signaling pathway`
-* `Th17 cell differentiation`
-* `T cell receptor signaling pathway`
-* `B cell receptor signaling pathway`
-* `Antigen processing and presentation`
-* `Rheumatoid arthritis`
-
-Deze resultaten moeten worden geïnterpreteerd als overlap met KEGG-pathways. Het bestand `KEGG_pathways_met_overlap.csv` bevat aantallen overlappende genen per pathway, maar dit is geen volledige statistische KEGG-enrichmentanalyse met p-waarden.
-
-Het KEGG-resultaatbestand staat hier:
-
-* [KEGG pathways met overlap](Results/Tables/KEGG_pathways_met_overlap.csv)
+De KEGG-overlapresultaten bevatten onder andere cytokine-, chemokine-, TNF-, NF-kappa B-, Th17-, T-cel- en B-cel-gerelateerde pathways. Dit is geïnterpreteerd als pathway-overlap en niet als volledige statistische KEGG-enrichmentanalyse.
 
 ---
 
 ## Conclusie
 
-Met behulp van RNA-seq analyse zijn duidelijke verschillen in genexpressie gevonden tussen synoviumbiopten van personen met reumatoïde artritis en controlepersonen. In totaal zijn **4528 differentieel tot expressie komende genen** gevonden, waarvan **2057 genen hoger tot expressie kwamen in RA** en **2471 genen lager tot expressie kwamen in RA**.
+De RNA-seq analyse laat duidelijke verschillen zien tussen RA-synovium en controles. De belangrijkste bevinding is dat RA-synovium wordt gekenmerkt door verhoogde immuunactivatie. Dit blijkt uit differentiële expressie van immunoglobuline-gerelateerde genen, verrijking van GO-termen rond immuunrespons en B-celactiviteit, en overlap met KEGG-pathways voor ontstekings- en immuunsignalering.
 
-De biologische interpretatie van de resultaten wijst vooral richting immuunactiviteit. De GO-analyse met `goseq` liet verrijking zien van processen zoals `adaptive immune response`, `immune system process`, `immune response`, `leukocyte activation`, `lymphocyte activation` en `B cell mediated immunity`. Ook de Molecular Function- en Cellular Component-resultaten ondersteunen dit beeld, doordat termen zoals `antigen binding`, `immunoglobulin receptor binding` en `immunoglobulin complex` naar voren kwamen.
-
-De KEGG-resultaten sluiten hierbij aan. Er was overlap met meerdere immuun- en ontstekingsgerelateerde pathways, zoals `cytokine-cytokine receptor interaction`, `chemokine signaling pathway`, `TNF signaling pathway`, `NF-kappa B signaling pathway`, `Th17 cell differentiation` en de `rheumatoid arthritis` pathway. In de KEGG RA-pathway waren meerdere ontstekingsgerelateerde genen hoger tot expressie in RA, waaronder cytokines, chemokines en genen die betrokken zijn bij T-celactivatie en ontstekingssignalering.
-
-Samen passen deze resultaten bij RA als auto-immuunziekte waarbij synovitis, immuunactivatie, B-celactiviteit, T-celactiviteit en ontstekingsprocessen een belangrijke rol spelen. Een beperking van deze analyse is dat er maar acht samples zijn gebruikt en dat er gewerkt is met subset40k FASTQ-bestanden. De resultaten zijn daarom vooral geschikt om de transcriptomics-workflow te demonstreren en moeten voorzichtig biologisch geïnterpreteerd worden.
-
-Daarnaast konden niet alle betrouwbaar geteste genen worden meegenomen in de `goseq`-analyse, omdat niet voor elk gen een genlengte of GO-annotatie beschikbaar was. Van de 19.872 betrouwbaar geteste genen konden 17.551 genen gekoppeld worden aan een genlengte uit de GTF. Binnen deze set waren 4.286 genen significant differentieel tot expressie komend. Deze beperking is meegenomen bij de interpretatie van de GO-resultaten.
-
-Vervolgonderzoek zou kunnen bestaan uit analyse van een grotere dataset, validatie van interessante genen met qPCR en een volledige statistische pathway-enrichmentanalyse voor KEGG of andere pathways. Ondanks deze beperkingen laat deze analyse zien hoe RNA-seq gebruikt kan worden om ziekte-gerelateerde genexpressiepatronen bij reumatoïde artritis te onderzoeken.
+Deze resultaten passen bij RA als auto-immuunziekte waarbij synovitis, immuuncelactivatie en chronische ontsteking centraal staan. Een beperking is dat de analyse is uitgevoerd met acht samples en subset40k FASTQ-bestanden. De resultaten zijn daarom vooral geschikt om de RNA-seq workflow en biologische interpretatie te demonstreren. Vervolgonderzoek kan bestaan uit analyse van een grotere dataset, validatie van relevante genen met qPCR en een volledige statistische pathway-enrichmentanalyse.
 
 ---
 
-## Data stewardship en beheer
+## Data stewardship en reproduceerbaarheid
 
-Voor de competentie beheren zijn aparte documenten toegevoegd waarin wordt uitgelegd hoe de projectgegevens en scripts zijn beheerd:
+De repository is ingericht om de analyse reproduceerbaar en transparant te beheren. Ruwe FASTQ-bestanden, BAM-bestanden en referentiebestanden zijn vanwege bestandsgrootte niet toegevoegd aan GitHub en worden uitgesloten via `.gitignore`. De mappen bevatten wel README-bestanden waarin staat welke bestanden lokaal nodig zijn. Scripts, metadata, verwerkte tabellen, figuren en sessionInfo zijn wel opgenomen.
+
+De volledige uitleg staat in:
 
 * [Data stewardship / beheren](Data_stewardship/Beheren.md)
 * [GitHub beheer](Data_stewardship/GitHub_beheer.md)
 
-In dit project is onderscheid gemaakt tussen ruwe data, tussenbestanden, verwerkte data, resultaten, scripts en documentatie. Grote bestanden zoals FASTQ-, BAM- en referentiebestanden zijn niet toegevoegd aan GitHub en worden uitgesloten via `.gitignore`. De mappen waarin deze bestanden lokaal horen te staan bevatten wel een README-bestand met uitleg.
+---
+
+## AI-gebruik
+
+Tijdens dit project is ChatGPT gebruikt als hulpmiddel bij het structureren van de GitHub-pagina, het controleren van R-code, het verbeteren van formuleringen en het verwerken van feedback. De analyses zijn uitgevoerd in R en de resultaten zijn gecontroleerd aan de hand van de gegenereerde tabellen, figuren en console-output. De uiteindelijke keuzes, interpretatie en inhoudelijke controle zijn zelf uitgevoerd.
 
 ---
 
 ## Gebruikte software en packages
 
-De analyse is uitgevoerd in R/RStudio. De belangrijkste gebruikte packages zijn:
+Belangrijkste software en packages: R 4.5.3, RStudio, `Rsubread`, `Rsamtools`, `DESeq2`, `KEGGREST`, `EnhancedVolcano`, `pathview`, `org.Hs.eg.db`, `AnnotationDbi`, `goseq`, `rtracklayer`, `GenomicRanges`, `GO.db` en `ggplot2`.
 
-* `Rsubread`
-* `Rsamtools`
-* `DESeq2`
-* `KEGGREST`
-* `EnhancedVolcano`
-* `pathview`
-* `org.Hs.eg.db`
-* `AnnotationDbi`
-* `goseq`
-* `rtracklayer`
-* `GenomicRanges`
-* `GO.db`
-* `ggplot2`
-
-De volledige R-sessie, RStudio-versie en gebruikte package-versies zijn opgeslagen in:
-
-* [sessionInfo_transcriptomics_RA.txt](Results/sessionInfo_transcriptomics_RA.txt)
-
-Deze informatie is toegevoegd om de analyse beter reproduceerbaar te maken.
+De volledige R-sessie staat in [sessionInfo_transcriptomics_RA.txt](Results/sessionInfo_transcriptomics_RA.txt).
 
 ---
 
 ## Bronnen
 
-Gabriel, S. E. (2001). *The epidemiology of rheumatoid arthritis*. Rheumatic Disease Clinics of North America, 27(2), 269–281. doi:10.1016/S0889-857X(05)70201-5
+Gabriel, S. E. (2001). *The epidemiology of rheumatoid arthritis*. Rheumatic Disease Clinics of North America, 27(2), 269–281. https://doi.org/10.1016/S0889-857X(05)70201-5
 
-Majithia, V., & Geraci, S. A. (2007). *Rheumatoid arthritis: Diagnosis and management*. The American Journal of Medicine, 120(11), 936–939. doi:10.1016/j.amjmed.2007.04.005
+Liao, Y., Smyth, G. K., & Shi, W. (2019). *The R package Rsubread is easier, faster, cheaper and better for alignment and quantification of RNA sequencing reads*. Nucleic Acids Research, 47(8), e47. https://doi.org/10.1093/nar/gkz114
 
-Platzer, A., Nussbaumer, T., Karonitsch, T., Smolen, J. S., & Aletaha, D. (2019). *Analysis of gene expression in rheumatoid arthritis and related conditions offers insights into sex-bias, gene biotypes and co-expression patterns*. PLOS ONE, 14(7), e0219698. doi:10.1371/journal.pone.0219698
+Love, M. I., Huber, W., & Anders, S. (2014). *Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2*. Genome Biology, 15, 550. https://doi.org/10.1186/s13059-014-0550-8
 
-Radu, A.-F., & Bungau, S. G. (2021). *Management of rheumatoid arthritis: An overview*. Cells, 10(11), 2857. doi:10.3390/cells10112857
+Luo, W., & Brouwer, C. (2013). *Pathview: an R/Bioconductor package for pathway-based data integration and visualization*. Bioinformatics, 29(14), 1830–1831. https://doi.org/10.1093/bioinformatics/btt285
+
+Majithia, V., & Geraci, S. A. (2007). *Rheumatoid arthritis: Diagnosis and management*. The American Journal of Medicine, 120(11), 936–939. https://doi.org/10.1016/j.amjmed.2007.04.005
+
+Platzer, A., Nussbaumer, T., Karonitsch, T., Smolen, J. S., & Aletaha, D. (2019). *Analysis of gene expression in rheumatoid arthritis and related conditions offers insights into sex-bias, gene biotypes and co-expression patterns*. PLOS ONE, 14(7), e0219698. https://doi.org/10.1371/journal.pone.0219698
+
+Radu, A.-F., & Bungau, S. G. (2021). *Management of rheumatoid arthritis: An overview*. Cells, 10(11), 2857. https://doi.org/10.3390/cells10112857
 
 Young, M. D., Wakefield, M. J., Smyth, G. K., & Oshlack, A. (2010). *Gene ontology analysis for RNA-seq: Accounting for selection bias*. Genome Biology, 11, R14. https://doi.org/10.1186/gb-2010-11-2-r14
