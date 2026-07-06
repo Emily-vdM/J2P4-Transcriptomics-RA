@@ -20,27 +20,25 @@ Deze repository bevat een RNA-seq analyse van synoviumbiopten van personen met r
 
 ## Inleiding en doel
 
-Reumatoïde artritis is een chronische systemische auto-immuunziekte waarbij ontsteking van het synovium, ook wel synovitis, centraal staat (Gabriel, 2001; Radu & Bungau, 2021). Deze ontsteking kan leiden tot pijn, stijfheid en gewrichtsschade. RA ontstaat waarschijnlijk door een combinatie van genetische aanleg, omgevingsfactoren en een verstoorde immuunrespons. Vroege herkenning en behandeling zijn belangrijk, omdat gewrichtsschade niet volledig herstelt.
+Reumatoïde artritis (RA) is een chronische systemische auto-immuunziekte waarbij ontsteking van het synovium, ook wel synovitis, centraal staat ([Radu & Bungau, 2021](Reference_articles/Radu_Bungau_2021_RA_management.pdf)). RA komt wereldwijd naar schatting voor bij ongeveer 0,5–1,0% van de bevolking, waardoor het een relevante auto-immuunziekte is om op moleculair niveau te onderzoeken ([Gabriel, 2001](Reference_articles/Gabriel_2001_RA_epidemiology.pdf)). De ziekte kan leiden tot pijn, stijfheid en blijvende gewrichtsschade. Vroege herkenning en behandeling zijn daarom belangrijk ([Majithia & Geraci, 2007](Reference_articles/Majithia_Geraci_2007_RA_diagnosis_management.pdf); [Radu & Bungau, 2021](Reference_articles/Radu_Bungau_2021_RA_management.pdf)).
 
-Transcriptomics kan helpen om RA beter te begrijpen, omdat RNA-seq laat zien welke genen actief zijn in ziek en gezond weefsel. Eerder onderzoek naar RA-genexpressie liet zien dat synoviumweefsel gebruikt kan worden om ziekte-gerelateerde genexpressiepatronen te onderzoeken.
+Transcriptomics kan helpen om RA beter te begrijpen, omdat RNA-seq laat zien welke genen actief zijn in ziek en gezond weefsel. Eerder onderzoek liet zien dat synoviumweefsel gebruikt kan worden om RA-gerelateerde genexpressiepatronen te onderzoeken en om verschillen tussen RA en verwante aandoeningen zichtbaar te maken ([Platzer et al., 2019](Reference_articles/Platzer_2019_RA_gene_expression.pdf)).
 
-In dit project is RNA-seq data van vier controlepersonen en vier personen met gevestigde RA geanalyseerd. De RA-samples waren ACPA-positief en de controles ACPA-negatief. De hoofdvraag was:
-
-**Welke genen, biologische processen en pathways verschillen tussen synoviumbiopten van personen met RA en controlepersonen?**
-
-Daarbij is gekeken naar differentiële genexpressie, KEGG-pathways, Gene Ontology-termen en reproduceerbaar databeheer met GitHub.
+Het doel van dit project was om met een reproduceerbare RNA-seq workflow te onderzoeken welke genen hoger of lager tot expressie komen in RA-synovium ten opzichte van controles. Daarnaast is onderzocht welke Gene Ontology-termen en KEGG-pathways gekoppeld zijn aan deze differentieel tot expressie komende genen. Hiermee wordt antwoord gegeven op de vraag welke genen, biologische processen en pathways verschillen tussen synoviumbiopten van RA-patiënten en controlepersonen.
 
 ---
 
 ## Methode
 
-De analyse is uitgevoerd in **R 4.5.3**. De ruwe data bestond uit paired-end RNA-seq FASTQ-bestanden uit het onderzoek van Platzer et al. (2019). Voor de praktische workflow is gewerkt met subset40k FASTQ-bestanden van acht SRA-runs: `SRR4785819`, `SRR4785820`, `SRR4785828`, `SRR4785831`, `SRR4785979`, `SRR4785980`, `SRR4785986` en `SRR4785988`.
+De analyse is uitgevoerd in **R 4.5.3**. De volledige R-sessie met packageversies staat in [sessionInfo_transcriptomics_RA.txt](Results/sessionInfo_transcriptomics_RA.txt). De ruwe data bestond uit paired-end RNA-seq FASTQ-bestanden uit de dataset van [Platzer et al. (2019)](Reference_articles/Platzer_2019_RA_gene_expression.pdf). Voor de praktische workflow is gewerkt met subset40k FASTQ-bestanden van acht SRA-runs: vier controles (`SRR4785819`, `SRR4785820`, `SRR4785828`, `SRR4785831`) en vier RA-samples (`SRR4785979`, `SRR4785980`, `SRR4785986`, `SRR4785988`).
 
-De reads zijn gemapt met `Rsubread` tegen het humane NCBI RefSeq referentiegenoom GRCh38.p14 (`GCF_000001405.40_GRCh38.p14`). Met `featureCounts` is een eigen count matrix gemaakt als onderdeel van de workflow. Voor de uiteindelijke differentiële genexpressieanalyse is `Data/Processed/count_matrix_RA.txt` gebruikt als officiële count matrix.
+De reads zijn gemapt met `Rsubread` tegen het humane NCBI RefSeq referentiegenoom GRCh38.p14 (`GCF_000001405.40_GRCh38.p14`) ([Liao et al., 2019](Reference_articles/Liao_2019_Rsubread_RNAseq_alignment_quantification.pdf)). Met `featureCounts` is een eigen count matrix gemaakt als onderdeel van de workflow. Voor de differentiële genexpressieanalyse is `Data/Processed/count_matrix_RA.txt` gebruikt.
 
-Met `DESeq2` is RA vergeleken met controle. De controlegroep is ingesteld als referentie, waardoor een positieve `log2FoldChange` hogere expressie in RA betekent. Significante genen zijn geselecteerd met `padj < 0.05` en `|log2FoldChange| > 1`.
+Met `DESeq2` is RA vergeleken met controle ([Love et al., 2014](Reference_articles/Love_2014_DESeq2_differential_expression.pdf)). De controlegroep is ingesteld als referentie, waardoor een positieve `log2FoldChange` hogere expressie in RA betekent. Significante genen zijn geselecteerd met `padj < 0.05` en `|log2FoldChange| > 1`.
 
-Voor functionele interpretatie zijn genen geannoteerd met `org.Hs.eg.db` en `AnnotationDbi`. De KEGG RA-pathway is gevisualiseerd met `pathview`. De GO-analyse is uitgevoerd met `goseq`, omdat deze methode rekening houdt met gene-length bias bij RNA-seq data. Hiervoor zijn genlengtes bepaald uit het gebruikte GTF-bestand en is met `nullp()` een Probability Weighting Function berekend. De PWF-plot staat hier: [goseq PWF plot](Results/Figures/goseq_PWF_RA_vs_control.png).
+Voor functionele interpretatie zijn genen geannoteerd met `org.Hs.eg.db` en `AnnotationDbi`. De KEGG RA-pathway is gevisualiseerd met `pathview` ([Luo & Brouwer, 2013](Reference_articles/Luo_Brouwer_2013_pathview_pathway_visualization.pdf)). De GO-analyse is uitgevoerd met `goseq`, omdat deze methode rekening houdt met gene-length bias bij RNA-seq data ([Young et al., 2010]([Young et al., 2010](Reference_articles/Young_2010_goseq_gene_ontology_selection_bias.pdf)).
+
+De bijbehorende PWF-plot staat hier: [goseq PWF plot](Results/Figures/goseq_PWF_RA_vs_control.png).
 
 ```mermaid
 flowchart TD
