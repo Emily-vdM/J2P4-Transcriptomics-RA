@@ -36,7 +36,7 @@ De reads zijn gemapt met `Rsubread` tegen het humane NCBI RefSeq referentiegenoo
 
 Met `DESeq2` is RA vergeleken met controle ([Love et al., 2014](Reference_articles/Love_2014_DESeq2_differential_expression.pdf)). De controlegroep is ingesteld als referentie, waardoor een positieve `log2FoldChange` hogere expressie in RA betekent. Significante genen zijn geselecteerd met `padj < 0.05` en `|log2FoldChange| > 1`.
 
-Voor functionele interpretatie zijn genen geannoteerd met `org.Hs.eg.db` en `AnnotationDbi`. De KEGG RA-pathway is gevisualiseerd met `pathview` ([Luo & Brouwer, 2013](Reference_articles/Luo_Brouwer_2013_pathview_pathway_visualization.pdf)). De GO-analyse is uitgevoerd met `goseq`, omdat deze methode rekening houdt met gene-length bias bij RNA-seq data ([Young et al., 2010]([Young et al., 2010](Reference_articles/Young_2010_goseq_gene_ontology_selection_bias.pdf)).
+Voor functionele interpretatie zijn genen geannoteerd met `org.Hs.eg.db` en `AnnotationDbi`. De KEGG RA-pathway is gevisualiseerd met `pathview` ([Luo & Brouwer, 2013](Reference_articles/Luo_Brouwer_2013_pathview_pathway_visualization.pdf)). De GO-analyse is uitgevoerd met `goseq`, omdat deze methode rekening houdt met gene-length bias bij RNA-seq data ([Young et al., 2010](Reference_articles/Young_2010_goseq_gene_ontology_selection_bias.pdf)).
 
 De bijbehorende PWF-plot staat hier: [goseq PWF plot](Results/Figures/goseq_PWF_RA_vs_control.png).
 
