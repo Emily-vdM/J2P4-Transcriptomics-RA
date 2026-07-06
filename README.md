@@ -58,35 +58,27 @@ flowchart TD
 
 ### Differentiële genexpressie
 
-Met DESeq2 zijn **4528 differentieel tot expressie komende genen** gevonden. Daarvan kwamen **2057 genen hoger** en **2471 genen lager** tot expressie in RA ten opzichte van controle. Omdat de volledige DESeq2-tabel groot is, is ook een kleinere top 25-tabel toegevoegd met de genen met de laagste aangepaste p-waarde.
-
-De volcano plot laat zien dat er aan beide kanten veel significant veranderde genen aanwezig zijn.
+Met DESeq2 zijn in RA-synovium ten opzichte van controle **4528 differentieel tot expressie komende genen** gevonden bij `padj < 0.05` en `|log2FoldChange| > 1`. Hiervan kwamen **2057 genen hoger** en **2471 genen lager** tot expressie in RA. De sterkst verhoogde genen waren vooral immunoglobuline-gerelateerd, wat wijst op B-celactiviteit en antistof-gerelateerde processen.
 
 ![Volcano plot RA vs controle](Results/Figures/Volcanoplot_RA_vs_control.png)
 
-*Figuur 1. Volcano plot van RA versus controle. Rode punten voldoen aan `padj < 0.05` en `|log2FoldChange| > 1`. Rechts staan genen met hogere expressie in RA en links genen met lagere expressie in RA.*
-
-De sterkst hoger tot expressie komende genen waren vooral immunoglobuline-gerelateerde genen, zoals `IGHV3-53`, `IGKV1-39`, `IGKV3D-15`, `IGHV6-1` en `IGHV1-69`. Dit wijst op betrokkenheid van B-cellen en antistof-gerelateerde processen.
+*Figuur 1. Volcano plot van RA-synovium versus controlesynovium. In totaal zijn 4528 differentieel tot expressie komende genen gevonden bij `padj < 0.05` en `|log2FoldChange| > 1`. Rechts staan genen met hogere expressie in RA; links staan genen met lagere expressie in RA.*
 
 ### Gene Ontology analyse
 
-Met `goseq` zijn **215 significante Biological Process-termen**, **8 Molecular Function-termen** en **7 Cellular Component-termen** gevonden. De belangrijkste Biological Process-termen wijzen vooral op immuunactivatie, waaronder `immune system process`, `immune response`, `cell activation`, `leukocyte activation`, `lymphocyte activation`, `adaptive immune response` en `B cell mediated immunity`.
+Met `goseq` zijn **215 significante Biological Process-termen**, **8 Molecular Function-termen** en **7 Cellular Component-termen** gevonden. De belangrijkste termen wijzen vooral op immuunrespons, leukocytactivatie, lymfocytactivatie, adaptieve immuunrespons en B-cel-gemedieerde immuniteit.
 
 ![GO Biological Process dotplot](Results/Figures/GO_BP_dotplot_RA_vs_control.png)
 
-*Figuur 2. GO Biological Process-dotplot na correctie voor gene-length bias met `goseq`. De verrijkte termen wijzen vooral op immuunrespons, leukocytactivatie, lymfocytactivatie en B-cel-gemedieerde immuniteit.*
-
-De Molecular Function- en Cellular Component-resultaten ondersteunen dit beeld, met termen zoals `antigen binding`, `immunoglobulin receptor binding` en `immunoglobulin complex`.
+*Figuur 2. GO Biological Process-dotplot van significant veranderde genen in RA-synovium versus controlesynovium, geanalyseerd met `goseq`. De belangrijkste verrijkte processen hangen samen met immuunrespons, leukocytactivatie, lymfocytactivatie en B-cel-gemedieerde immuniteit.*
 
 ### KEGG-pathwayanalyse
 
-De KEGG RA-pathway (`hsa05323`) is gevisualiseerd met `pathview`. In deze pathway kwamen meerdere ontstekings- en immuungerelateerde genen hoger tot expressie in RA, waaronder `IFNG`, `CD80/86`, `MHCII`, `CD28`, `CTLA4`, `IL6`, `IL1B`, `IL8`, `CCL2`, `CCL3`, `CXCL1`, `CXCL5`, `TLR2/4` en `MMP1/3`.
+Op basis van de GO-resultaten is de KEGG rheumatoid arthritis pathway (`hsa05323`) verder bekeken met `pathview`. De pathway en het KEGG-overlapoverzicht wijzen vooral op verhoogde ontstekings- en immuunsignalering in RA, waaronder cytokine-, chemokine-, TNF-, NF-kappa B-, T-cel- en B-cel-gerelateerde routes.
 
 ![KEGG rheumatoid arthritis pathway](Results/Pathways/hsa05323.RA_vs_control.png)
 
-*Figuur 3. KEGG RA-pathway met `pathview`. Rood geeft hogere expressie in RA aan en groen lagere expressie in RA. De figuur laat verhoogde ontstekings- en immuunsignalering in RA zien.*
-
-De KEGG-overlapresultaten bevatten onder andere cytokine-, chemokine-, TNF-, NF-kappa B-, Th17-, T-cel- en B-cel-gerelateerde pathways. Dit is geïnterpreteerd als pathway-overlap en niet als volledige statistische KEGG-enrichmentanalyse.
+*Figuur 3. KEGG rheumatoid arthritis pathway (`hsa05323`) van RA-synovium versus controlesynovium, gevisualiseerd met `pathview`. Rood geeft hogere expressie in RA aan en groen lagere expressie in RA. De pathway laat vooral verhoogde ontstekings- en immuunsignalering in RA zien.*
 
 ---
 
@@ -94,7 +86,7 @@ De KEGG-overlapresultaten bevatten onder andere cytokine-, chemokine-, TNF-, NF-
 
 De RNA-seq analyse laat duidelijke verschillen zien tussen RA-synovium en controles. De belangrijkste bevinding is dat RA-synovium wordt gekenmerkt door verhoogde immuunactivatie. Dit blijkt uit differentiële expressie van immunoglobuline-gerelateerde genen, verrijking van GO-termen rond immuunrespons en B-celactiviteit, en overlap met KEGG-pathways voor ontstekings- en immuunsignalering.
 
-Deze resultaten passen bij RA als auto-immuunziekte waarbij synovitis, immuuncelactivatie en chronische ontsteking centraal staan. Een beperking is dat de analyse is uitgevoerd met acht samples en subset40k FASTQ-bestanden. De resultaten zijn daarom vooral geschikt om de RNA-seq workflow en biologische interpretatie te demonstreren. Vervolgonderzoek kan bestaan uit analyse van een grotere dataset, validatie van relevante genen met qPCR en een volledige statistische pathway-enrichmentanalyse.
+Deze resultaten passen bij RA als auto-immuunziekte waarbij synovitis, immuuncelactivatie en chronische ontsteking centraal staan. Een beperking is dat de analyse is uitgevoerd met acht samples en subset40k FASTQ-bestanden. De resultaten zijn daarom vooral geschikt om de RNA-seq workflow en biologische interpretatie te demonstreren. Vervolgonderzoek kan bestaan uit analyse van een grotere dataset, validatie van relevante genen met qPCR en een statistische KEGG-enrichmentanalyse.
 
 ---
 
