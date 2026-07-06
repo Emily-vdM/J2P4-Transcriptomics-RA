@@ -9,6 +9,7 @@ Deze repository bevat een RNA-seq analyse van synoviumbiopten van personen met r
 * [R-script](Scripts/transcriptomics_RA_workflow.R)
 * [SessionInfo en packageversies](Results/sessionInfo_transcriptomics_RA.txt)
 * [Metadata](Data/Metadata/sample_metadata_RA.csv)
+* [Alle resultaattabellen](Results/Tables/)
 * [DESeq2 top 25 resultaten](Results/Tables/DESeq2_top25_laagste_padj_RA_vs_control.csv)
 * [Volledige DESeq2 resultaten](Results/Tables/DESeq2_resultaten_RA_vs_control.csv)
 * [GO-resultaten](Results/Tables/GO_Biological_Process_RA_vs_control.csv)

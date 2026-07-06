@@ -28,10 +28,14 @@ Voorbeelden zijn:
 
 ```text
 Data/raw_fastq/README.md
+Data/Processed/README.md
+Results/Tables/README.md
 Mapped_reads/README.md
 Reference/README.md
 Data_stewardship/README.md
 ```
+
+De README in `Results/Tables/` beschrijft de DESeq2-, GO- en KEGG-resultaattabellen, zodat de analyse-output makkelijker terug te vinden en te controleren is.
 
 ## Versiebeheer
 

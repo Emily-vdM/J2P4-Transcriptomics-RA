@@ -48,3 +48,13 @@ De bestanden in deze map vormen de overgang tussen de ruwe/gemapte sequencingdat
 Voor de uiteindelijke differentiële genexpressieanalyse is het bestand `count_matrix_RA.txt` gebruikt. Dit bestand is ingelezen in R, omgezet naar een integer count matrix en gebruikt als input voor `DESeq2`.
 
 De overige bestanden zijn opgeslagen als extra verwerkte output en documentatie van de mapping- en featureCounts-stap.
+
+## Relatie met resultaattabellen
+
+Deze map bevat verwerkte inputdata en tussenbestanden, zoals count matrices en featureCounts-output. De statistische output van DESeq2, GO en KEGG staat niet in deze map, maar in [Results/Tables](../../Results/Tables/).
+
+Hierdoor blijft het onderscheid duidelijk tussen:
+
+* `Data/Processed/`: verwerkte data en tussenbestanden die nodig zijn voor de analyse.
+* `Results/Tables/`: resultaat-tabellen die uit de analyses zijn gekomen.
+

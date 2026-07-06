@@ -20,9 +20,17 @@ Scripts/
 Data_stewardship/
 ```
 
-`Data/raw_fastq/` is bedoeld voor de ruwe paired-end FASTQ-bestanden. `Mapped_reads/` is bedoeld voor BAM- en indexbestanden na mapping. `Reference/` is bedoeld voor het referentiegenoom, annotatiebestand en Rsubread-index. Deze grote bestanden zijn niet op GitHub geplaatst, maar lokaal bewaard. De mappen blijven wel zichtbaar door een `README.md`-bestand.
+`Data/raw_fastq/` is bedoeld voor de ruwe paired-end FASTQ-bestanden.
 
-`Data/Processed/` bevat verwerkte data zoals count matrices. `Results/` bevat tabellen, figuren, pathway-output en `sessionInfo`. `Scripts/` bevat het R-script waarmee de analyse is uitgevoerd.
+`Mapped_reads/` is bedoeld voor BAM- en indexbestanden na mapping.
+
+`Reference/` is bedoeld voor het referentiegenoom, annotatiebestand en Rsubread-index. Deze grote bestanden zijn niet op GitHub geplaatst, maar lokaal bewaard. De mappen blijven wel zichtbaar door een `README.md`-bestand.
+
+`Data/Processed/` bevat verwerkte inputdata en tussenbestanden, zoals count matrices en featureCounts-output.
+
+`Results/` bevat de analyse-output, zoals tabellen, figuren, pathway-output en `sessionInfo`. In `Results/Tables/README.md` staat per resultaattabel kort beschreven welke analyse-output het bestand bevat.
+
+`Scripts/` bevat het R-script waarmee de analyse is uitgevoerd.
 
 ## Metadata en bestandsnamen
 
@@ -35,6 +43,8 @@ DESeq2_resultaten_RA_vs_control.csv
 GO_Biological_Process_RA_vs_control.csv
 Volcanoplot_RA_vs_control.png
 ```
+
+De bestanden in `Results/Tables/` zijn daarnaast toegelicht in een aparte README, zodat duidelijk blijft welke tabellen bij DESeq2, GO en KEGG horen.
 
 ## Grote bestanden en .gitignore
 
