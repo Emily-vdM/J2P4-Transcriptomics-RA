@@ -19,6 +19,21 @@ Deze repository bevat een RNA-seq analyse van synoviumbiopten van personen met r
 
 ---
 
+## Inhoud / repositorystructuur
+
+* `Data/raw_fastq/` – map voor de ruwe paired-end FASTQ-bestanden; deze bestanden zijn lokaal bewaard en niet op GitHub geplaatst.
+* `Data/Processed/` – verwerkte inputdata en tussenbestanden, zoals count matrices en featureCounts-output.
+* `Data/Metadata/` – sample-informatie die nodig is om samples aan controle of RA te koppelen.
+* `Mapped_reads/` – map voor BAM- en indexbestanden na mapping; deze bestanden zijn lokaal bewaard.
+* `Reference/` – referentiegenoom, annotatiebestand en Rsubread-index; deze grote bestanden zijn lokaal bewaard.
+* `Reference_articles/` – gebruikte wetenschappelijke bronnen als PDF.
+* `Results/` – analyse-output, waaronder tabellen, figuren, pathway-output en `sessionInfo`.
+* `Scripts/` – R-script waarmee de RNA-seq workflow is uitgevoerd.
+* `Data_stewardship/` – uitleg over databeheer, GitHub-beheer en reproduceerbaarheid.
+* `README.md` – hoofdtekst van deze GitHub-pagina.
+
+---
+
 ## Inleiding en doel
 
 Reumatoïde artritis (RA) is een chronische systemische auto-immuunziekte waarbij ontsteking van het synovium, ook wel synovitis, centraal staat ([Radu & Bungau, 2021](Reference_articles/Radu_Bungau_2021_RA_management.pdf)). RA komt wereldwijd naar schatting voor bij ongeveer 0,5–1,0% van de bevolking, waardoor het een relevante auto-immuunziekte is om op moleculair niveau te onderzoeken ([Gabriel, 2001](Reference_articles/Gabriel_2001_RA_epidemiology.pdf)). De ziekte kan leiden tot pijn, stijfheid en blijvende gewrichtsschade. Vroege herkenning en behandeling zijn daarom belangrijk ([Majithia & Geraci, 2007](Reference_articles/Majithia_Geraci_2007_RA_diagnosis_management.pdf); [Radu & Bungau, 2021](Reference_articles/Radu_Bungau_2021_RA_management.pdf)).
