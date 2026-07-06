@@ -47,7 +47,7 @@ flowchart TD
     B --> C[BAM-bestanden]
     C --> D[Count matrix met featureCounts]
     D --> E[Differentiële genexpressie met DESeq2]
-    E --> F[Annotatie SYMBOL en ENTREZID]
+    E --> F[Annotatie SYMBOL en Entrez ID]
     F --> G[Volcano plot]
     F --> H[KEGG/pathview]
     F --> I[GO-analyse met goseq]
