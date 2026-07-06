@@ -60,7 +60,8 @@ flowchart TD
 
 ### Differentiële genexpressie
 
-Met DESeq2 zijn **4528 differentieel tot expressie komende genen** gevonden. Daarvan kwamen **2057 genen hoger** en **2471 genen lager** tot expressie in RA ten opzichte van controle. Omdat de volledige DESeq2-tabel groot is, is ook een kleinere top 25-tabel toegevoegd met de genen met de laagste aangepaste p-waarde. De volcano plot laat zien dat er aan beide kanten veel significant veranderde genen aanwezig zijn.
+Met DESeq2 zijn **4528 differentieel tot expressie komende genen** gevonden. Daarvan kwamen **2057 genen hoger** en **2471 genen lager** tot expressie in RA ten opzichte van controle. Omdat de volledige DESeq2-tabel groot is, is ook een kleinere top 25-tabel toegevoegd met de genen met de laagste aangepaste p-waarde.
+De volcano plot laat zien dat er aan beide kanten veel significant veranderde genen aanwezig zijn.
 
 ![Volcano plot RA vs controle](Results/Figures/Volcanoplot_RA_vs_control.png)
 
