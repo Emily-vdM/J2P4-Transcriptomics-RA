@@ -1220,3 +1220,38 @@ capture.output(
 
 file.exists("Results/sessionInfo_transcriptomics_RA.txt")
 
+
+
+# Kleine DESeq2-previewtabel maken voor GitHub ####
+# Dit blok kan los worden uitgevoerd als de volledige DESeq2-resultaten al bestaan.
+
+setwd("C:/Users/31613/OneDrive - NHL Stenden/00 jaar 2/periode 4/Transcriptomics/Github/J2P4-Transcriptomics-RA/")
+
+# Volledige DESeq2-resultaten opnieuw inladen
+deseq2_resultaten <- read.csv(
+  "Results/Tables/DESeq2_resultaten_RA_vs_control.csv",
+  header = TRUE,
+  check.names = FALSE
+)
+
+# Genen zonder padj verwijderen en sorteren op laagste aangepaste p-waarde
+deseq2_top25 <- deseq2_resultaten[
+  !is.na(deseq2_resultaten$padj),
+]
+
+deseq2_top25 <- deseq2_top25[
+  order(deseq2_top25$padj, decreasing = FALSE),
+]
+
+# Top 25 bewaren
+deseq2_top25 <- head(deseq2_top25, 25)
+
+# Opslaan als klein bestand dat GitHub wel makkelijk kan tonen
+write.csv(
+  deseq2_top25,
+  file = "Results/Tables/DESeq2_top25_laagste_padj_RA_vs_control.csv",
+  row.names = FALSE
+)
+
+# Controleren
+file.exists("Results/Tables/DESeq2_top25_laagste_padj_RA_vs_control.csv")

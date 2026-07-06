@@ -9,7 +9,8 @@ Deze repository bevat een RNA-seq analyse van synoviumbiopten van personen met r
 * [R-script](Scripts/transcriptomics_RA_workflow.R)
 * [SessionInfo en packageversies](Results/sessionInfo_transcriptomics_RA.txt)
 * [Metadata](Data/Metadata/sample_metadata_RA.csv)
-* [DESeq2 resultaten](Results/Tables/DESeq2_resultaten_RA_vs_control.csv)
+* [DESeq2 top 25 resultaten](Results/Tables/DESeq2_top25_laagste_padj_RA_vs_control.csv)
+* [Volledige DESeq2 resultaten](Results/Tables/DESeq2_resultaten_RA_vs_control.csv)
 * [GO-resultaten](Results/Tables/GO_Biological_Process_RA_vs_control.csv)
 * [KEGG-overlap](Results/Tables/KEGG_pathways_met_overlap.csv)
 * [Data stewardship](Data_stewardship/Beheren.md)
@@ -19,7 +20,7 @@ Deze repository bevat een RNA-seq analyse van synoviumbiopten van personen met r
 
 ## Inleiding en doel
 
-Reumatoïde artritis is een chronische systemische auto-immuunziekte waarbij ontsteking van het synovium, ook wel synovitis, centraal staat. Deze ontsteking kan leiden tot pijn, stijfheid en gewrichtsschade. RA ontstaat waarschijnlijk door een combinatie van genetische aanleg, omgevingsfactoren en een verstoorde immuunrespons. Vroege herkenning en behandeling zijn belangrijk, omdat gewrichtsschade niet volledig herstelt.
+Reumatoïde artritis is een chronische systemische auto-immuunziekte waarbij ontsteking van het synovium, ook wel synovitis, centraal staat (Gabriel, 2001; Radu & Bungau, 2021). Deze ontsteking kan leiden tot pijn, stijfheid en gewrichtsschade. RA ontstaat waarschijnlijk door een combinatie van genetische aanleg, omgevingsfactoren en een verstoorde immuunrespons. Vroege herkenning en behandeling zijn belangrijk, omdat gewrichtsschade niet volledig herstelt.
 
 Transcriptomics kan helpen om RA beter te begrijpen, omdat RNA-seq laat zien welke genen actief zijn in ziek en gezond weefsel. Eerder onderzoek naar RA-genexpressie liet zien dat synoviumweefsel gebruikt kan worden om ziekte-gerelateerde genexpressiepatronen te onderzoeken.
 
@@ -59,7 +60,7 @@ flowchart TD
 
 ### Differentiële genexpressie
 
-Met DESeq2 zijn **4528 differentieel tot expressie komende genen** gevonden. Daarvan kwamen **2057 genen hoger** en **2471 genen lager** tot expressie in RA ten opzichte van controle. De volcano plot laat zien dat er aan beide kanten veel significant veranderde genen aanwezig zijn.
+Met DESeq2 zijn **4528 differentieel tot expressie komende genen** gevonden. Daarvan kwamen **2057 genen hoger** en **2471 genen lager** tot expressie in RA ten opzichte van controle. Omdat de volledige DESeq2-tabel groot is, is ook een kleinere top 25-tabel toegevoegd met de genen met de laagste aangepaste p-waarde. De volcano plot laat zien dat er aan beide kanten veel significant veranderde genen aanwezig zijn.
 
 ![Volcano plot RA vs controle](Results/Figures/Volcanoplot_RA_vs_control.png)
 
