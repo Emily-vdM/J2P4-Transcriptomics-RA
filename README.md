@@ -111,7 +111,7 @@ De volledige uitleg staat in:
 
 ## AI-gebruik
 
-Tijdens dit project is ChatGPT gebruikt als hulpmiddel bij het structureren van de GitHub-pagina, het controleren van R-code, het verbeteren van R-code, zoeken van relevante wetenschappelijke artikelen en het controlen van verwerkte feedback. De analyses zijn uitgevoerd in R en de resultaten zijn gecontroleerd aan de hand van de gegenereerde tabellen, figuren en console-output. De uiteindelijke keuzes, interpretatie en inhoudelijke controle zijn zelf uitgevoerd.
+Tijdens dit project is ChatGPT gebruikt als hulpmiddel bij het structureren van de GitHub-pagina, het controleren en verbeteren van R-code, het zoeken naar relevante wetenschappelijke artikelen en het controleren van verwerkte feedback. De analyses zijn uitgevoerd in R en de resultaten zijn gecontroleerd aan de hand van de gegenereerde tabellen, figuren en console-output. De uiteindelijke keuzes, interpretatie en inhoudelijke controle zijn zelf uitgevoerd.
 
 ---
 
